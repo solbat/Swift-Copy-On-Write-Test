@@ -16,6 +16,7 @@ func address(of object: UnsafeRawPointer) -> String {
     return NSString(format: "%p", address) as String
 }
 
+
 // 실험1: struct
 var a1 = CopyOnWriteTest()
 var a2 = a1
@@ -29,6 +30,7 @@ print("AFTER")
 print("address of a1: \(address(of: &a1))")
 print("address of a2: \(address(of: &a2))")
 
+
 // 실험2: Array
 var a3 = [3, 4, 5, 6]
 var a4 = a3
@@ -41,6 +43,7 @@ a4.append(0)
 print("AFTER")
 print("address of a3: \(address(of: &a3))")
 print("address of a4: \(address(of: &a4))")
+
 
 // 실험3: custom COW 구현
 final class Ref<T> {
@@ -79,3 +82,43 @@ a6.value.count = 10
 print("AFTER")
 print("address of a5: \(address(of: &a5.ref.val))")
 print("address of a6: \(address(of: &a6.ref.val))")
+
+
+// 실험4: COW 시간 측정
+func measureTime(_ closure: () -> ()) -> Double {
+    let startTime = DispatchTime.now()
+    closure()
+    let endTime = DispatchTime.now()
+    let nanoTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
+    let timeInterval = Double(nanoTime) / 1_000_000_000
+    return timeInterval
+}
+
+var a7 = [8, 9, 10, 11]
+var a8 = a7
+
+print("\n실험4: COW 시간 측정")
+print("BEFORE")
+print("address of a7: \(address(of: &a7))")
+print("address of a8: \(address(of: &a8))")
+print("첫 번째 수정")
+print(
+    measureTime {
+        a8.append(12)
+    }
+)
+print("두 번째 수정")
+print(
+    measureTime {
+        a8.append(13)
+    }
+)
+print("세 번째 수정")
+print(
+    measureTime {
+        a8.append(14)
+    }
+)
+print("AFTER")
+print("address of a7: \(address(of: &a7))")
+print("address of a8: \(address(of: &a8))")
